@@ -19,13 +19,9 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT,
   OLED_MOSI, OLED_CLK, OLED_DC, OLED_RESET, OLED_CS);
 
 const int W = 128, H = 64;
-int len;
+int len = 21;
 char str[] = "12345678901234567890";
 int pos;
-void click(char * str){
-  Serial.println(str);
-  return;
-}
 const int N = 2, M = 9;
 const int X = 0, Y = 40;
 const int L = 12;
@@ -41,7 +37,7 @@ char mapp[N][M] = {
 #define YES 6
 int priority(char c){					//运算符优先级定义 
 	switch (c){
-		case ')':return 0;break;
+		case '(':return 0;break;
 		case '+':return 1;break;
 		case '-':return 1;break;
 		case '*':return 2;break;
@@ -66,18 +62,21 @@ void pop(long * numStack, int &top, char * charStack, int &ctop){							//出栈
 		case '/':--top;numStack[top]=numStack[top]/numStack[top+1];break;
 		case '^':--top;numStack[top]=pow(numStack[top],numStack[top+1]);break;
 	}
+  // Serial.print(numStack[0]);
+  // Serial.print(" ");
+  // Serial.print(numStack[1]);
+  // Serial.print(" ");
+  // Serial.print(numStack[2]);
+  // Serial.println("");
 	return;
 }
-long trans(char *s, int p, int len, int &i){			//字符串转数字 
-	char * tmp = new char[len + 1];
+long trans(char *s, int len, int &p){			//字符串转数字 
 	int j=0;
-	for(;p<len&&s[p]<='9'&&s[p]>='0';++p,++j){
-		tmp[j]=s[p];
+  long ans = 0;
+	for(;p<len&&s[p]>='0'&&s[p]<='9';++p){
+    ans = (ans * 10) + (s[p] - '0');
 	}
-	tmp[j]='\0';
-	i=p-1;
-	long ans = atol(tmp);
-	delete[] tmp;
+  --p;
 	return ans;
 }//atoi
 long calc(char *s, int len){
@@ -88,7 +87,7 @@ long calc(char *s, int len){
 	for(int i=0;i<len;++i){
 		if(s[i]<='9'&&s[i]>='0'){		//入数据栈 
 			++top;
-			numStack[top]=trans(s, i, len, i);
+			numStack[top]=trans(s, len, i);
 		}
 		else {
 			char temp=s[i];
@@ -149,7 +148,6 @@ void select(){
 void click(){
   if(mapp[locy][locx] == '='){
     long ans = calc(str, pos);
-    Serial.println(ans);
     for(int i = 0; i < len; ++i){
       str[i] = ' ';
     }
@@ -159,7 +157,6 @@ void click(){
     while(str[pos] == ' ') --pos;
     ++pos;
     str[pos] = '_';
-    Serial.println(ans);
   }
   else if(mapp[locy][locx] == 'C'){
     if(pos){
